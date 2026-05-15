@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <cctype>
 #include <cstdlib>
+#include <cerrno>
 #include "input.hpp"
 
 namespace sedov
@@ -19,34 +20,12 @@ namespace sedov
       return is;
     }
     IOGuard guard(is);
-    std::string token;
-    is >> token;
-    if (!is)
+    double value;
+    is >> value;
+    if (is)
     {
-      return is;
+      ds.a = value;
     }
-    bool hasExponent = false;
-    for (size_t i = 0; i < token.length(); ++i)
-    {
-      if (token[i] == 'e' || token[i] == 'E')
-      {
-        hasExponent = true;
-        break;
-      }
-    }
-    if (!hasExponent)
-    {
-      is.setstate(std::ios_base::failbit);
-      return is;
-    }
-    char * endptr = nullptr;
-    double value = std::strtod(token.c_str(), &endptr);
-    if (endptr != token.c_str() + token.length())
-    {
-      is.setstate(std::ios_base::failbit);
-      return is;
-    }
-    ds.a = value;
     return is;
   }
 
@@ -117,15 +96,8 @@ namespace sedov
       is.setstate(std::ios_base::failbit);
       return is;
     }
-    is >> real >> imag;
-    is >> close;
+    is >> real >> imag >> close;
     if (close != ')')
-    {
-      is.setstate(std::ios_base::failbit);
-      return is;
-    }
-    int next = is.peek();
-    if (next != EOF && next != ':' && next != ')')
     {
       is.setstate(std::ios_base::failbit);
       return is;
@@ -178,52 +150,6 @@ namespace sedov
     return is;
   }
 
-  std::istream & getValue(std::istream & is, std::string key, std::vector< bool > & is_been, DataStruct & ds)
-  {
-    using d_t = Delimeter_t;
-    if (key == "key1")
-    {
-      if (is_been[0])
-      {
-        is.setstate(std::ios_base::failbit);
-        return is;
-      }
-      is >> ds.key1;
-      is_been[0] = true;
-    }
-    else if (key == "key2")
-    {
-      if (is_been[1])
-      {
-        is.setstate(std::ios_base::failbit);
-        return is;
-      }
-      is >> ds.key2;
-      is_been[1] = true;
-    }
-    else if (key == "key3")
-    {
-      if (is_been[2])
-      {
-        is.setstate(std::ios_base::failbit);
-        return is;
-      }
-      char q = 0;
-      std::getline(is >> d_t{{'"'}, q}, ds.key3, '"');
-      is_been[2] = true;
-    }
-    else
-    {
-      is.setstate(std::ios_base::failbit);
-    }
-    return is;
-  }
-
-  std::istream & operator>>(std::istream & is, KeyValueInp inp)
-  {
-    return getValue(is, inp.key, inp.is_been, inp.ds);
-  }
-
   std::istream & operator>>(std::istream & is, DataStruct & ds)
   {
     std::istream::sentry s(is);
@@ -231,25 +157,135 @@ namespace sedov
     {
       return is;
     }
+    std::streampos pos = is.tellg();
     IOGuard guard(is);
     DataStruct inp;
-    char last = 0;
-    using d_t = Delimeter_t;
-    std::vector< bool > is_been(3, false);
-    std::string k1, k2, k3;
-    is >> d_t{{'('}, last} >> d_t{{':'}, last}
-      >> k1 >> KeyValueInp{k1, is_been, inp} >> d_t{{':'}, last}
-      >> k2 >> KeyValueInp{k2, is_been, inp} >> d_t{{':'}, last}
-      >> k3 >> KeyValueInp{k3, is_been, inp} >> d_t{{':'}, last}
-      >> d_t{{')'}, last};
-    if (is && is_been[0] && is_been[1] && is_been[2])
+    bool gotK1 = false, gotK2 = false, gotK3 = false;
+    std::string key;
+    char ch;
+    is >> ch;
+    if (ch != '(')
+    {
+      goto fail;
+    }
+    is >> ch;
+    if (ch != ':')
+    {
+      goto fail;
+    }
+    is >> key;
+    if (key == "key1")
+    {
+      while (std::isspace(is.peek()))
+      {
+        is.get();
+      }
+      if (is.peek() == '"')
+      {
+        goto fail;
+      }
+      std::string token;
+      char c;
+      while (is.get(c) && c != ':')
+      {
+        token += c;
+      }
+      if (!is)
+      {
+        goto fail;
+      }
+      while (!token.empty() && std::isspace(token.back()))
+      {
+        token.pop_back();
+      }
+      is.unget();
+      bool hasExponent = false;
+      for (size_t i = 0; i < token.length(); ++i)
+      {
+        if (token[i] == 'e' || token[i] == 'E')
+        {
+          hasExponent = true;
+          break;
+        }
+      }
+      if (!hasExponent)
+      {
+        goto fail;
+      }
+      char * endptr = nullptr;
+      double value = std::strtod(token.c_str(), &endptr);
+      if (endptr != token.c_str() + token.length())
+      {
+        goto fail;
+      }
+      inp.key1.a = value;
+      gotK1 = true;
+    }
+    is >> ch;
+    if (ch != ':')
+    {
+      goto fail;
+    }
+    is >> key;
+    if (key == "key2")
+    {
+      is >> inp.key2;
+      if (is)
+      {
+        gotK2 = true;
+      }
+      else 
+      {
+        goto fail;
+      }
+    }
+    is >> ch;
+    if (ch != ':')
+    {
+      goto fail;
+    }
+    is >> key;
+    if (key == "key3")
+    {
+      char quote;
+      is >> quote;
+      if (quote == '"')
+      {
+        std::getline(is, inp.key3, '"');
+        if (is)
+        {
+          gotK3 = true;
+        }
+        else
+        {
+          goto fail;
+        }
+      }
+      else
+      {
+        goto fail;
+      }
+    }
+    is >> ch;
+    if (ch != ':')
+    {
+      goto fail;
+    }
+    is >> ch;
+    if (ch != ')')
+    {
+      goto fail;
+    }
+    if (gotK1 && gotK2 && gotK3)
     {
       ds = inp;
+      return is;
     }
-    else
-    {
-      is.setstate(std::ios_base::failbit);
-    }
+
+  fail:
+    is.clear();
+    is.seekg(pos);
+    is.setstate(std::ios_base::failbit);
     return is;
   }
 
