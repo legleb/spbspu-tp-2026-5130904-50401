@@ -11,15 +11,22 @@ int main()
 {
   using T = sedov::DataStruct;
   std::vector< T > data;
-  using iit_t = std::istream_iterator< T >;
   while (!std::cin.eof())
   {
-    std::copy(iit_t{std::cin}, iit_t{}, std::back_inserter(data));
-    if (std::cin.fail())
+    T temp;
+    if (std::cin >> temp)
+    {
+      data.push_back(temp);
+    }
+    else
     {
       std::cin.clear();
-      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+      std::cin.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
     }
+  }
+  if (data.empty())
+  {
+    return 0;
   }
   std::sort(data.begin(), data.end());
   using oit_t = std::ostream_iterator< T >;
