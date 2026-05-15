@@ -11,6 +11,11 @@ namespace sedov
     double a;
   };
 
+  std::istream & operator>>(std::istream & is, DblSci & ds);
+  std::ostream & operator<<(std::ostream & os, const DblSci & ds);
+  bool operator<(const DblSci & lhs, const DblSci & rhs);
+  bool operator==(const DblSci & lhs, const DblSci & rhs);
+
   struct CmpLsp
   {
     std::complex< double > a;
@@ -24,7 +29,7 @@ namespace sedov
   };
 
   std::istream & operator>>(std::istream & is, DataStruct & ds);
-  std::ostream & operator<<(std::ostream&  os, const DataStruct & ds);
+  std::ostream & operator<<(std::ostream & os, const DataStruct & ds);
   bool operator<(const DataStruct & lhs, const DataStruct & rhs);
 
   struct IOGuard
