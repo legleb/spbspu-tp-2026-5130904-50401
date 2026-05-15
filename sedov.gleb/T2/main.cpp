@@ -8,7 +8,7 @@
 int main()
 {
   using T = sedov::DataStruct;
-  std::vector<T> data;
+  std::vector< T > data;
   while (true)
   {
     std::copy(std::istream_iterator< T >(std::cin), std::istream_iterator< T >(), std::back_inserter(data));

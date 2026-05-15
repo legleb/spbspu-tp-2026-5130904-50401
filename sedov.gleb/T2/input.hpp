@@ -37,6 +37,26 @@ namespace sedov
   std::ostream & operator<<(std::ostream & os, const DataStruct & ds);
   bool operator<(const DataStruct & lhs, const DataStruct & rhs);
 
+  struct Delimeter_t
+  {
+    std::vector< char > expected;
+    char & last;
+  };
+
+  std::istream & operator>>(std::istream & is, Delimeter_t del);
+
+  struct KeyValueInp
+  {
+    std::string key;
+    std::vector< bool > & is_been;
+    DataStruct & ds;
+  };
+
+  std::istream & operator>>(std::istream & is, KeyValueInp inp);
+
+  char check(std::istream & is, const std::vector< char > & expected);
+  std::istream & getValueByKey(std::istream & is, std::string key, std::vector< bool > & is_been, DataStruct & ds);
+
   struct IOGuard
   {
     explicit IOGuard(std::basic_ios< char > & s);

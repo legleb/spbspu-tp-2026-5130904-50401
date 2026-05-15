@@ -14,7 +14,7 @@ namespace sedov
     flags_(s.flags()),
     fill_(s.fill())
   {}
-  
+
   IOGuard::~IOGuard()
   {
     s_.precision(precision_);
@@ -108,18 +108,130 @@ namespace sedov
     return std::abs(lhs.a - rhs.a) < 1e-12;
   }
 
-  std::istream & operator>>(std::istream & is, DataStruct &)
+  char check(std::istream & is, const std::vector< char > & expected)
   {
+    char c = 0;
+    is >> c;
+    bool found = false;
+    for (size_t i = 0; i < expected.size(); ++i)
+    {
+      if (expected[i] == c)
+      {
+        found = true;
+        break;
+      }
+    }
+    if (!found)
+    {
+      is.setstate(std::ios_base::failbit);
+    }
+    return c;
+  }
+
+  std::istream & operator>>(std::istream & is, Delimeter_t del)
+  {
+    del.last = check(is, del.expected);
     return is;
   }
-  
-  std::ostream & operator<<(std::ostream & os, const DataStruct &)
+
+  std::istream & getValueByKey(std::istream & is, std::string key, std::vector< bool > & is_been, DataStruct & ds)
   {
+    using d_t = Delimeter_t;
+    if (key == "key1")
+    {
+      if (is_been[0])
+      {
+        is.setstate(std::ios_base::failbit);
+        return is;
+      }
+      is >> ds.key1;
+      is_been[0] = true;
+    }
+    else if (key == "key2")
+    {
+      if (is_been[1])
+      {
+        is.setstate(std::ios_base::failbit);
+        return is;
+      }
+      is >> ds.key2;
+      is_been[1] = true;
+    }
+    else if (key == "key3")
+    {
+      if (is_been[2])
+      {
+        is.setstate(std::ios_base::failbit);
+        return is;
+      }
+      char q = 0;
+      std::getline(is >> d_t{{'"'}, q}, ds.key3, '"');
+      is_been[2] = true;
+    }
+    else
+    {
+      is.setstate(std::ios_base::failbit);
+    }
+    return is;
+  }
+
+  std::istream & operator>>(std::istream & is, KeyValueInp inp)
+  {
+    return getValueByKey(is, inp.key, inp.is_been, inp.ds);
+  }
+
+  std::istream & operator>>(std::istream & is, DataStruct & ds)
+  {
+    std::istream::sentry s(is);
+    if (!s)
+    {
+      return is;
+    }
+    IOGuard guard(is);
+    DataStruct inp;
+    char last = 0;
+    using d_t = Delimeter_t;
+    std::vector< bool > is_been(3, false);
+    std::string k1, k2, k3;
+    is >> d_t{{'('}, last} >> d_t{{':'}, last}
+      >> k1 >> KeyValueInp{k1, is_been, inp} >> d_t{{':'}, last}
+      >> k2 >> KeyValueInp{k2, is_been, inp} >> d_t{{':'}, last}
+      >> k3 >> KeyValueInp{k3, is_been, inp} >> d_t{{':'}, last}
+      >> d_t{{')'}, last};
+    if (is)
+    {
+      ds = inp;
+    }
+    return is;
+  }
+
+  std::ostream & operator<<(std::ostream & os, const DataStruct & ds)
+  {
+    IOGuard g(os);
+    os << "(:key1 " << ds.key1 << ":key2 " << ds.key2 << ":key3 \"" << ds.key3 << "\":)";
     return os;
   }
-  
-  bool operator<(const DataStruct &, const DataStruct &)
+
+  bool operator<(const DataStruct & lhs, const DataStruct & rhs)
   {
-    return false;
+    if (lhs.key1.a < rhs.key1.a)
+    {
+      return true;
+    }
+    if (rhs.key1.a < lhs.key1.a)
+    {
+      return false;
+    }
+    double lhs_abs = std::abs(lhs.key2.a);
+    double rhs_abs = std::abs(rhs.key2.a);
+    if (lhs_abs < rhs_abs)
+    {
+      return true;
+    }
+    if (rhs_abs < lhs_abs)
+    {
+      return false;
+    }
+    return lhs.key3 < rhs.key3;
   }
 }
