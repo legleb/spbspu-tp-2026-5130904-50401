@@ -21,6 +21,11 @@ namespace sedov
     std::complex< double > a;
   };
 
+  std::istream & operator>>(std::istream & is, CmpLsp & cl);
+  std::ostream & operator<<(std::ostream & os, const CmpLsp & cl);
+  bool operator<(const CmpLsp & lhs, const CmpLsp & rhs);
+  bool operator==(const CmpLsp & lhs, const CmpLsp & rhs);
+
   struct DataStruct
   {
     DblSci key1;

@@ -64,6 +64,50 @@ namespace sedov
     return std::abs(lhs.a - rhs.a) < 1e-12;
   }
 
+  std::istream & operator>>(std::istream & is, CmpLsp & cl)
+  {
+    std::istream::sentry s(is);
+    if (!s)
+    {
+      return is;
+    }
+    IOGuard guard(is);
+    char hash = 0, c = 0, open = 0, close = 0;
+    double real = 0, imag = 0;
+    is >> hash >> c >> open;
+    if (hash != '#' || c != 'c' || open != '(')
+    {
+      is.setstate(std::ios_base::failbit);
+      return is;
+    }
+    is >> real >> imag >> close;
+    if (!is || close != ')')
+    {
+      is.setstate(std::ios_base::failbit);
+      return is;
+    }
+    cl.a = std::complex< double >(real, imag);
+    return is;
+  }
+
+  std::ostream & operator<<(std::ostream & os, const CmpLsp & cl)
+  {
+    IOGuard guard(os);
+    os << std::fixed << std::setprecision(1);
+    os << "#c(" << cl.a.real() << " " << cl.a.imag() << ")";
+    return os;
+  }
+
+  bool operator<(const CmpLsp & lhs, const CmpLsp & rhs)
+  {
+    return std::abs(lhs.a) < std::abs(rhs.a);
+  }
+
+  bool operator==(const CmpLsp & lhs, const CmpLsp & rhs)
+  {
+    return std::abs(lhs.a - rhs.a) < 1e-12;
+  }
+
   std::istream & operator>>(std::istream & is, DataStruct &)
   {
     return is;
