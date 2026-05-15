@@ -134,9 +134,8 @@ namespace sedov
     return is;
   }
 
-  std::istream & getValueByKey(std::istream & is, std::string key, std::vector< bool > & is_been, DataStruct & ds)
+  std::istream & getValue(std::istream & is, std::string key, std::vector< bool > & is_been, DataStruct & ds)
   {
-    using d_t = Delimeter_t;
     if (key == "key1")
     {
       if (is_been[0])
@@ -165,7 +164,13 @@ namespace sedov
         return is;
       }
       char q = 0;
-      std::getline(is >> d_t{{'"'}, q}, ds.key3, '"');
+      is >> q;
+      if (q != '"')
+      {
+        is.setstate(std::ios_base::failbit);
+        return is;
+      }
+      std::getline(is, ds.key3, '"');
       is_been[2] = true;
     }
     else
@@ -177,7 +182,7 @@ namespace sedov
 
   std::istream & operator>>(std::istream & is, KeyValueInp inp)
   {
-    return getValueByKey(is, inp.key, inp.is_been, inp.ds);
+    return getValue(is, inp.key, inp.is_been, inp.ds);
   }
 
   std::istream & operator>>(std::istream & is, DataStruct & ds)
@@ -190,14 +195,53 @@ namespace sedov
     IOGuard guard(is);
     DataStruct inp;
     char last = 0;
-    using d_t = Delimeter_t;
     std::vector< bool > is_been(3, false);
     std::string k1, k2, k3;
-    is >> d_t{{'('}, last} >> d_t{{':'}, last}
-      >> k1 >> KeyValueInp{k1, is_been, inp} >> d_t{{':'}, last}
-      >> k2 >> KeyValueInp{k2, is_been, inp} >> d_t{{':'}, last}
-      >> k3 >> KeyValueInp{k3, is_been, inp} >> d_t{{':'}, last}
-      >> d_t{{')'}, last};
+    char open_paren = 0;
+    is >> open_paren;
+    if (open_paren != '(')
+    {
+      is.setstate(std::ios_base::failbit);
+      return is;
+    }
+    char colon = 0;
+    is >> colon;
+    if (colon != ':')
+    {
+      is.setstate(std::ios_base::failbit);
+      return is;
+    }
+    is >> k1;
+    getValue(is, k1, is_been, inp);
+    is >> colon;
+    if (colon != ':')
+    {
+      is.setstate(std::ios_base::failbit);
+      return is;
+    }
+    is >> k2;
+    getValue(is, k2, is_been, inp);
+    is >> colon;
+    if (colon != ':')
+    {
+      is.setstate(std::ios_base::failbit);
+      return is;
+    }
+    is >> k3;
+    getValue(is, k3, is_been, inp);
+    is >> colon;
+    if (colon != ':')
+    {
+      is.setstate(std::ios_base::failbit);
+      return is;
+    }
+    char close_paren = 0;
+    is >> close_paren;
+    if (close_paren != ')')
+    {
+      is.setstate(std::ios_base::failbit);
+      return is;
+    }
     if (is)
     {
       ds = inp;

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <complex>
+#include <vector>
 
 namespace sedov
 {
@@ -55,7 +56,7 @@ namespace sedov
   std::istream & operator>>(std::istream & is, KeyValueInp inp);
 
   char check(std::istream & is, const std::vector< char > & expected);
-  std::istream & getValueByKey(std::istream & is, std::string key, std::vector< bool > & is_been, DataStruct & ds);
+  std::istream & getValue(std::istream & is, std::string key, std::vector< bool > & is_been, DataStruct & ds);
 
   struct IOGuard
   {
