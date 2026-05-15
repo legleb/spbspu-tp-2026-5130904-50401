@@ -234,7 +234,7 @@ namespace sedov
       {
         gotK2 = true;
       }
-      else 
+      else
       {
         goto fail;
       }
