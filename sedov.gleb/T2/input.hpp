@@ -1,9 +1,7 @@
-#ifndef RELOAD_INPUT_HPP
-#define RELOAD_INPUT_HPP
 #include <iostream>
+#include <vector>
 #include <string>
 #include <complex>
-#include <vector>
 
 namespace sedov
 {
@@ -55,13 +53,22 @@ namespace sedov
 
   std::istream & operator>>(std::istream & is, KeyValueInp inp);
 
-  char check(std::istream & is, const std::vector< char > & expected);
-  std::istream & getValue(std::istream & is, std::string key, std::vector< bool > & is_been, DataStruct & ds);
-
   struct IOGuard
   {
-    explicit IOGuard(std::basic_ios< char > & s);
-    ~IOGuard();
+    explicit IOGuard(std::basic_ios< char > & s):
+      s_(s),
+      precision_(s.precision()),
+      width_(s.width()),
+      flags_(s.flags()),
+      fill_(s.fill())
+    {}
+    ~IOGuard()
+    {
+      s_.precision(precision_);
+      s_.width(width_);
+      s_.flags(flags_);
+      s_.fill(fill_);
+    }
   private:
     std::basic_ios< char > & s_;
     std::streamsize precision_;
@@ -69,6 +76,7 @@ namespace sedov
     std::basic_ios< char >::fmtflags flags_;
     char fill_;
   };
-}
 
-#endif
+  char check(std::istream & is, const std::vector< char > & expected);
+  std::istream & getValue(std::istream & is, std::string key, std::vector< bool > & is_been, DataStruct & ds);
+}

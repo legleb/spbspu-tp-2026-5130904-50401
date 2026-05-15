@@ -1,28 +1,16 @@
 #include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <complex>
+#include <cmath>
 #include <iomanip>
 #include <sstream>
 #include <cctype>
-#include <cmath>
 #include "input.hpp"
 
 namespace sedov
 {
-  IOGuard::IOGuard(std::basic_ios< char > & s):
-    s_(s),
-    precision_(s.precision()),
-    width_(s.width()),
-    flags_(s.flags()),
-    fill_(s.fill())
-  {}
-
-  IOGuard::~IOGuard()
-  {
-    s_.precision(precision_);
-    s_.width(width_);
-    s_.flags(flags_);
-    s_.fill(fill_);
-  }
-
   std::istream & operator>>(std::istream & is, DblSci & ds)
   {
     std::istream::sentry s(is);
@@ -72,7 +60,6 @@ namespace sedov
       return is;
     }
     IOGuard guard(is);
-    std::streampos pos = is.tellg();
     char hash = 0, c = 0, open = 0, close = 0;
     double real = 0, imag = 0;
     is >> hash >> c >> open;
@@ -137,6 +124,7 @@ namespace sedov
 
   std::istream & getValue(std::istream & is, std::string key, std::vector< bool > & is_been, DataStruct & ds)
   {
+    using d_t = Delimeter_t;
     if (key == "key1")
     {
       if (is_been[0])
@@ -165,13 +153,7 @@ namespace sedov
         return is;
       }
       char q = 0;
-      is >> q;
-      if (q != '"')
-      {
-        is.setstate(std::ios_base::failbit);
-        return is;
-      }
-      std::getline(is, ds.key3, '"');
+      std::getline(is >> d_t{{'"'}, q}, ds.key3, '"');
       is_been[2] = true;
     }
     else
@@ -193,96 +175,24 @@ namespace sedov
     {
       return is;
     }
-    std::streampos pos = is.tellg();
     IOGuard guard(is);
     DataStruct inp;
+    char last = 0;
+    using d_t = Delimeter_t;
     std::vector< bool > is_been(3, false);
     std::string k1, k2, k3;
-    char open_paren = 0;
-    is >> open_paren;
-    if (open_paren != '(')
-    {
-      is.clear();
-      is.seekg(pos);
-      is.setstate(std::ios_base::failbit);
-      return is;
-    }
-    char colon = 0;
-    is >> colon;
-    if (colon != ':')
-    {
-      is.clear();
-      is.seekg(pos);
-      is.setstate(std::ios_base::failbit);
-      return is;
-    }
-    is >> k1;
-    if (!getValue(is, k1, is_been, inp))
-    {
-      is.clear();
-      is.seekg(pos);
-      is.setstate(std::ios_base::failbit);
-      return is;
-    }
-    is >> colon;
-    if (colon != ':')
-    {
-      is.clear();
-      is.seekg(pos);
-      is.setstate(std::ios_base::failbit);
-      return is;
-    }
-    is >> k2;
-    if (!getValue(is, k2, is_been, inp))
-    {
-      is.clear();
-      is.seekg(pos);
-      is.setstate(std::ios_base::failbit);
-      return is;
-    }
-    is >> colon;
-    if (colon != ':')
-    {
-      is.clear();
-      is.seekg(pos);
-      is.setstate(std::ios_base::failbit);
-      return is;
-    }
-    is >> k3;
-    if (!getValue(is, k3, is_been, inp))
-    {
-      is.clear();
-      is.seekg(pos);
-      is.setstate(std::ios_base::failbit);
-      return is;
-    }
-    is >> colon;
-    if (colon != ':')
-    {
-      is.clear();
-      is.seekg(pos);
-      is.setstate(std::ios_base::failbit);
-      return is;
-    }
-    char close_paren = 0;
-    is >> close_paren;
-    if (close_paren != ')')
-    {
-      is.clear();
-      is.seekg(pos);
-      is.setstate(std::ios_base::failbit);
-      return is;
-    }
-    if (!is_been[0] || !is_been[1] || !is_been[2])
-    {
-      is.clear();
-      is.seekg(pos);
-      is.setstate(std::ios_base::failbit);
-      return is;
-    }
-    if (is)
+    is >> d_t{{'('}, last} >> d_t{{':'}, last}
+      >> k1 >> KeyValueInp{k1, is_been, inp} >> d_t{{':'}, last}
+      >> k2 >> KeyValueInp{k2, is_been, inp} >> d_t{{':'}, last}
+      >> k3 >> KeyValueInp{k3, is_been, inp} >> d_t{{':'}, last}
+      >> d_t{{')'}, last};
+    if (is && is_been[0] && is_been[1] && is_been[2])
     {
       ds = inp;
+    }
+    else
+    {
+      is.setstate(std::ios_base::failbit);
     }
     return is;
   }
@@ -296,21 +206,19 @@ namespace sedov
 
   bool operator<(const DataStruct & lhs, const DataStruct & rhs)
   {
-    if (lhs.key1.a < rhs.key1.a)
+    if (lhs.key1 < rhs.key1)
     {
       return true;
     }
-    if (rhs.key1.a < lhs.key1.a)
+    if (rhs.key1 < lhs.key1)
     {
       return false;
     }
-    double lhs_abs = std::abs(lhs.key2.a);
-    double rhs_abs = std::abs(rhs.key2.a);
-    if (lhs_abs < rhs_abs)
+    if (lhs.key2 < rhs.key2)
     {
       return true;
     }
-    if (rhs_abs < lhs_abs)
+    if (rhs.key2 < lhs.key2)
     {
       return false;
     }
