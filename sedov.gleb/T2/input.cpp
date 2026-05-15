@@ -5,8 +5,8 @@
 #include <complex>
 #include <cmath>
 #include <iomanip>
-#include <sstream>
 #include <cctype>
+#include <cstdlib>
 #include "input.hpp"
 
 namespace sedov
@@ -19,26 +19,75 @@ namespace sedov
       return is;
     }
     IOGuard guard(is);
-    double value;
-    is >> value;
-    if (is)
+    std::string token;
+    is >> token;
+    if (!is)
     {
-      ds.a = value;
+      return is;
     }
+    bool hasExponent = false;
+    for (size_t i = 0; i < token.length(); ++i)
+    {
+      if (token[i] == 'e' || token[i] == 'E')
+      {
+        hasExponent = true;
+        break;
+      }
+    }
+    if (!hasExponent)
+    {
+      is.setstate(std::ios_base::failbit);
+      return is;
+    }
+    char * endptr = nullptr;
+    double value = std::strtod(token.c_str(), &endptr);
+    if (endptr != token.c_str() + token.length())
+    {
+      is.setstate(std::ios_base::failbit);
+      return is;
+    }
+    ds.a = value;
     return is;
   }
 
   std::ostream & operator<<(std::ostream & os, const DblSci & ds)
   {
     IOGuard guard(os);
-    std::ostringstream oss;
-    oss << std::scientific << std::setprecision(1) << ds.a;
-    std::string result = oss.str();
-    for (size_t i = 0; i < result.length(); ++i)
+    double val = ds.a;
+    if (std::abs(val) < 1e-12)
     {
-      result[i] = std::tolower(result[i]);
+      os << "0.0e+0";
+      return os;
     }
-    os << result;
+    if (val < 0)
+    {
+      os << "-";
+      val = -val;
+    }
+    int exp = 0;
+    while (val >= 10.0)
+    {
+      val /= 10.0;
+      exp++;
+    }
+    while (val < 1.0 && val > 0)
+    {
+      val *= 10.0;
+      exp--;
+    }
+    double mant = std::round(val * 10.0) / 10.0;
+    if (std::abs(mant - 10.0) < 1e-12)
+    {
+      mant = 1.0;
+      exp++;
+    }
+    os << std::fixed << std::setprecision(1) << mant;
+    os << "e";
+    if (exp >= 0)
+    {
+      os << "+";
+    }
+    os << exp;
     return os;
   }
 
@@ -68,8 +117,15 @@ namespace sedov
       is.setstate(std::ios_base::failbit);
       return is;
     }
-    is >> real >> imag >> close;
-    if (!is || close != ')')
+    is >> real >> imag;
+    is >> close;
+    if (close != ')')
+    {
+      is.setstate(std::ios_base::failbit);
+      return is;
+    }
+    int next = is.peek();
+    if (next != EOF && next != ':' && next != ')')
     {
       is.setstate(std::ios_base::failbit);
       return is;
