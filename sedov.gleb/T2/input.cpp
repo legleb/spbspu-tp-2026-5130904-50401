@@ -72,6 +72,7 @@ namespace sedov
       return is;
     }
     IOGuard guard(is);
+    std::streampos pos = is.tellg();
     char hash = 0, c = 0, open = 0, close = 0;
     double real = 0, imag = 0;
     is >> hash >> c >> open;
@@ -192,6 +193,7 @@ namespace sedov
     {
       return is;
     }
+    std::streampos pos = is.tellg();
     IOGuard guard(is);
     DataStruct inp;
     std::vector< bool > is_been(3, false);
@@ -200,6 +202,8 @@ namespace sedov
     is >> open_paren;
     if (open_paren != '(')
     {
+      is.clear();
+      is.seekg(pos);
       is.setstate(std::ios_base::failbit);
       return is;
     }
@@ -207,30 +211,56 @@ namespace sedov
     is >> colon;
     if (colon != ':')
     {
+      is.clear();
+      is.seekg(pos);
       is.setstate(std::ios_base::failbit);
       return is;
     }
     is >> k1;
-    getValue(is, k1, is_been, inp);
+    if (!getValue(is, k1, is_been, inp))
+    {
+      is.clear();
+      is.seekg(pos);
+      is.setstate(std::ios_base::failbit);
+      return is;
+    }
     is >> colon;
     if (colon != ':')
     {
+      is.clear();
+      is.seekg(pos);
       is.setstate(std::ios_base::failbit);
       return is;
     }
     is >> k2;
-    getValue(is, k2, is_been, inp);
+    if (!getValue(is, k2, is_been, inp))
+    {
+      is.clear();
+      is.seekg(pos);
+      is.setstate(std::ios_base::failbit);
+      return is;
+    }
     is >> colon;
     if (colon != ':')
     {
+      is.clear();
+      is.seekg(pos);
       is.setstate(std::ios_base::failbit);
       return is;
     }
     is >> k3;
-    getValue(is, k3, is_been, inp);
+    if (!getValue(is, k3, is_been, inp))
+    {
+      is.clear();
+      is.seekg(pos);
+      is.setstate(std::ios_base::failbit);
+      return is;
+    }
     is >> colon;
     if (colon != ':')
     {
+      is.clear();
+      is.seekg(pos);
       is.setstate(std::ios_base::failbit);
       return is;
     }
@@ -238,6 +268,15 @@ namespace sedov
     is >> close_paren;
     if (close_paren != ')')
     {
+      is.clear();
+      is.seekg(pos);
+      is.setstate(std::ios_base::failbit);
+      return is;
+    }
+    if (!is_been[0] || !is_been[1] || !is_been[2])
+    {
+      is.clear();
+      is.seekg(pos);
       is.setstate(std::ios_base::failbit);
       return is;
     }

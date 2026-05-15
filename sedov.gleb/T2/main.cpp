@@ -9,14 +9,14 @@ int main()
 {
   using T = sedov::DataStruct;
   std::vector< T > data;
-  while (true)
+  while (!std::cin.eof())
   {
-    std::copy(std::istream_iterator< T >(std::cin), std::istream_iterator< T >(), std::back_inserter(data));
-    if (std::cin.eof())
+    T temp;
+    if (std::cin >> temp)
     {
-      break;
+      data.push_back(temp);
     }
-    if (std::cin.fail())
+    else
     {
       std::cin.clear();
       std::cin.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
