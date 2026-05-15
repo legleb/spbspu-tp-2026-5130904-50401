@@ -194,7 +194,6 @@ namespace sedov
     }
     IOGuard guard(is);
     DataStruct inp;
-    char last = 0;
     std::vector< bool > is_been(3, false);
     std::string k1, k2, k3;
     char open_paren = 0;
