@@ -173,88 +173,83 @@ namespace sedov
     {
       goto fail;
     }
-    is >> key;
-    if (key == "key1")
+    while (is && is.peek() != ')')
     {
-      while (std::isspace(is.peek()))
+      is >> key;
+      if (key == "key1")
       {
-        is.get();
-      }
-      if (is.peek() == '"')
-      {
-        goto fail;
-      }
-      std::string token;
-      char c;
-      while (is.get(c) && c != ':')
-      {
-        token += c;
-      }
-      if (!is)
-      {
-        goto fail;
-      }
-      while (!token.empty() && std::isspace(token.back()))
-      {
-        token.pop_back();
-      }
-      is.unget();
-      bool hasExponent = false;
-      for (size_t i = 0; i < token.length(); ++i)
-      {
-        if (token[i] == 'e' || token[i] == 'E')
+        while (std::isspace(is.peek()))
         {
-          hasExponent = true;
-          break;
+          is.get();
         }
+        if (is.peek() == '"')
+        {
+          goto fail;
+        }
+        std::string token;
+        char c;
+        while (is.get(c) && c != ':')
+        {
+          token += c;
+        }
+        if (!is)
+        {
+          goto fail;
+        }
+        while (!token.empty() && std::isspace(token.back()))
+        {
+          token.pop_back();
+        }
+        is.unget();
+        bool hasExponent = false;
+        for (size_t i = 0; i < token.length(); ++i)
+        {
+          if (token[i] == 'e' || token[i] == 'E')
+          {
+            hasExponent = true;
+            break;
+          }
+        }
+        if (!hasExponent)
+        {
+          goto fail;
+        }
+        char * endptr = nullptr;
+        double value = std::strtod(token.c_str(), &endptr);
+        if (endptr != token.c_str() + token.length())
+        {
+          goto fail;
+        }
+        inp.key1.a = value;
+        gotK1 = true;
       }
-      if (!hasExponent)
+      else if (key == "key2")
       {
-        goto fail;
-      }
-      char * endptr = nullptr;
-      double value = std::strtod(token.c_str(), &endptr);
-      if (endptr != token.c_str() + token.length())
-      {
-        goto fail;
-      }
-      inp.key1.a = value;
-      gotK1 = true;
-    }
-    is >> ch;
-    if (ch != ':')
-    {
-      goto fail;
-    }
-    is >> key;
-    if (key == "key2")
-    {
-      is >> inp.key2;
-      if (is)
-      {
-        gotK2 = true;
-      }
-      else
-      {
-        goto fail;
-      }
-    }
-    is >> ch;
-    if (ch != ':')
-    {
-      goto fail;
-    }
-    is >> key;
-    if (key == "key3")
-    {
-      char quote;
-      is >> quote;
-      if (quote == '"')
-      {
-        std::getline(is, inp.key3, '"');
+        is >> inp.key2;
         if (is)
         {
-          gotK3 = true;
+          gotK2 = true;
+        }
+        else
+        {
+          goto fail;
+        }
+      }
+      else if (key == "key3")
+      {
+        char quote;
+        is >> quote;
+        if (quote == '"')
+        {
+          std::getline(is, inp.key3, '"');
+          if (is)
+          {
+            gotK3 = true;
+          }
+          else
+          {
+            goto fail;
+          }
         }
         else
         {
@@ -263,13 +258,33 @@ namespace sedov
       }
       else
       {
-        goto fail;
+        int depth = 0;
+        bool inQuotes = false;
+        while (is.get(ch) && (depth > 0 || inQuotes || ch != ':'))
+        {
+          if (ch == '"')
+          {
+            inQuotes = !inQuotes;
+          }
+          if (!inQuotes && ch == '(')
+          {
+            depth++;
+          }
+          if (!inQuotes && ch == ')')
+          {
+            depth--;
+          }
+        }
+        is.unget();
       }
-    }
-    is >> ch;
-    if (ch != ':')
-    {
-      goto fail;
+      if (is.peek() == ':')
+      {
+        is >> ch;
+        if (ch != ':')
+        {
+          goto fail;
+        }
+      }
     }
     is >> ch;
     if (ch != ')')
