@@ -1,7 +1,7 @@
 #include <iostream>
-#include <vector>
 #include <string>
 #include <complex>
+#include <vector>
 
 namespace sedov
 {
@@ -36,13 +36,12 @@ namespace sedov
   std::ostream & operator<<(std::ostream & os, const DataStruct & ds);
   bool operator<(const DataStruct & lhs, const DataStruct & rhs);
 
-  struct Delimeter_t
+  struct Delimeter
   {
-    std::vector< char > expected;
-    char & last;
+    char expected;
   };
 
-  std::istream & operator>>(std::istream & is, Delimeter_t del);
+  std::istream & operator>>(std::istream & is, Delimeter && dest);
 
   struct KeyValueInp
   {
@@ -51,24 +50,12 @@ namespace sedov
     DataStruct & ds;
   };
 
-  std::istream & operator>>(std::istream & is, KeyValueInp inp);
+  std::istream & operator>>(std::istream & is, KeyValueInp && inp);
 
   struct IOGuard
   {
-    explicit IOGuard(std::basic_ios< char > & s):
-      s_(s),
-      precision_(s.precision()),
-      width_(s.width()),
-      flags_(s.flags()),
-      fill_(s.fill())
-    {}
-    ~IOGuard()
-    {
-      s_.precision(precision_);
-      s_.width(width_);
-      s_.flags(flags_);
-      s_.fill(fill_);
-    }
+    explicit IOGuard(std::basic_ios< char > & s);
+    ~IOGuard();
   private:
     std::basic_ios< char > & s_;
     std::streamsize precision_;
@@ -76,7 +63,4 @@ namespace sedov
     std::basic_ios< char >::fmtflags flags_;
     char fill_;
   };
-
-  char check(std::istream & is, const std::vector< char > & expected);
-  std::istream & getValue(std::istream & is, std::string key, std::vector< bool > & is_been, DataStruct & ds);
 }
