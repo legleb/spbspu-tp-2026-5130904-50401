@@ -6,9 +6,14 @@
 void sedov::same(std::istream & in, std::ostream & out, std::vector< Polygon > & poly)
 {
   Polygon ref;
+  std::streampos pos = in.tellg();
   if (!(in >> ref))
   {
-    throw std::invalid_argument("Invalid polygon format for SAME");
+    in.clear();
+    in.seekg(pos);
+    in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
+    out << "<INVALID COMMAND>\n";
+    return;
   }
   auto pred = std::bind(isSamePlacement, std::placeholders::_1, std::cref(ref));
   size_t result = std::count_if(poly.begin(), poly.end(), pred);

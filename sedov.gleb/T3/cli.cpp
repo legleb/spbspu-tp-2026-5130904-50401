@@ -25,7 +25,8 @@ void sedov::readData(std::istream & in, std::vector< Polygon > & allPolygons)
 
 std::vector< sedov::Polygon > * sedov::command::allPolygons = nullptr;
 
-std::istream & sedov::operator>>(std::istream & in, command &) {
+std::istream & sedov::operator>>(std::istream & in, command &)
+{
   std::string name;
   in >> name;
   if (!in)
@@ -39,13 +40,18 @@ std::istream & sedov::operator>>(std::istream & in, command &) {
   commands["COUNT"] = count;
   commands["RECTS"] = rects;
   commands["SAME"] = same;
-  try {
+  try
+  {
     commands.at(name)(in, std::cout, *command::allPolygons);
   }
   catch (...)
   {
     std::cout << "<INVALID COMMAND>\n";
-    in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    if (in.fail())
+    {
+      in.clear();
+      in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
+    }
   }
   return in;
 }
