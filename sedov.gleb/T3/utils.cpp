@@ -84,6 +84,15 @@ bool sedov::operator==(const Point & a, const Point & b)
   return a.x == b.x && a.y == b.y;
 }
 
+bool sedov::operator==(const Polygon & a, const Polygon & b)
+{
+  if (a.points.size() != b.points.size())
+  {
+    return false;
+  }
+  return std::equal(a.points.begin(), a.points.end(), b.points.begin());
+}
+
 bool sedov::pointXLess(const Point & a, const Point & b)
 {
   return a.x < b.x;
@@ -142,20 +151,21 @@ bool sedov::isSamePlacement(const Polygon & candidate, const Polygon & reference
   {
     return true;
   }
-  size_t n = candidate.points.size();
   Point minC = getMinPoint(candidate);
   Point minR = getMinPoint(reference);
   Polygon shiftedC = shiftPolygon(candidate, minC);
   Polygon shiftedR = shiftPolygon(reference, minR);
+  size_t n = shiftedC.points.size();
   std::vector< size_t > shifts(n);
   std::iota(shifts.begin(), shifts.end(), 0);
   std::vector< Polygon > rotated;
   rotated.reserve(n);
   std::transform(shifts.begin(), shifts.end(), std::back_inserter(rotated),
     std::bind(rotatePolygon, std::cref(shiftedR), std::placeholders::_1));
-  auto pred = std::bind(equalPolygons, std::cref(shiftedC), std::placeholders::_1);
-  auto it = std::find_if(rotated.begin(), rotated.end(), pred);
-  return it != rotated.end();
+  std::vector< bool > matches(n);
+  std::transform(rotated.begin(), rotated.end(), matches.begin(),
+    std::bind(equalPolygons, std::cref(shiftedC), std::placeholders::_1));
+  return std::find(matches.begin(), matches.end(), true) != matches.end();
 }
 
 bool sedov::isRect(const Polygon & p)

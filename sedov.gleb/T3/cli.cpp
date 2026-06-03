@@ -4,23 +4,21 @@
 
 void sedov::readData(std::istream & in, std::vector< Polygon > & allPolygons)
 {
-  if (in.eof())
+  while (!in.eof())
   {
-    return;
-  }
-  Polygon p;
-  if (in >> p) {
-    allPolygons.push_back(p);
-    readData(in, allPolygons);
-    return;
-  }
-  if (in.eof())
-  {
-    return;
+    Polygon p;
+    if (in >> p)
+    {
+      allPolygons.push_back(p);
+    }
+    else
+    {
+      if (in.eof()) break;
+      in.clear();
+      in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
+    }
   }
   in.clear();
-  in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
-  readData(in, allPolygons);
 }
 
 std::vector< sedov::Polygon > * sedov::command::allPolygons = nullptr;

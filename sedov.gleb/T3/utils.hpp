@@ -1,5 +1,6 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
+
 #include <iostream>
 #include <vector>
 #include <iomanip>
@@ -16,10 +17,14 @@ namespace sedov
     int x, y;
   };
 
+  bool operator==(const Point & a, const Point & b);
+
   struct Polygon
   {
     std::vector< Point > points;
   };
+
+  bool operator==(const Polygon & a, const Polygon & b);
 
   struct DelimeterIO
   {
@@ -55,14 +60,12 @@ namespace sedov
   bool areaLess(const Polygon & lhs, const Polygon & rhs);
   bool verticesLess(const Polygon & lhs, const Polygon & rhs);
 
-  bool operator==(const Point & a, const Point & b);
   bool pointXLess(const Point & a, const Point & b);
   bool pointYLess(const Point & a, const Point & b);
 
   Point getMinPoint(const Polygon & p);
   Point shiftPoint(const Point & pt, const Point & min);
   Polygon shiftPolygon(const Polygon & p, const Point & min);
-
   Polygon rotatePolygon(const Polygon & p, size_t shift);
   bool equalPolygons(const Polygon & a, const Polygon & b);
   bool isSamePlacement(const Polygon & candidate, const Polygon & reference);
