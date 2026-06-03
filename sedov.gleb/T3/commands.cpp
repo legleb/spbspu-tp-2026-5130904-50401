@@ -54,6 +54,11 @@ namespace
     std::transform(filtered.begin(), filtered.end(), std::back_inserter(areas), getArea);
     out << std::fixed << std::setprecision(1) << std::accumulate(areas.begin(), areas.end(), 0.0) << "\n";
   }
+
+  bool isSpaceChar(char c)
+  {
+    return c == ' ';
+  }
 }
 
 void sedov::area(std::istream & in, std::ostream & out, std::vector< Polygon > & polygons)
@@ -199,6 +204,13 @@ void sedov::same(std::istream & in, std::ostream & out, std::vector< Polygon > &
     return;
   }
   if (target.points.size() < 3)
+  {
+    out << "<INVALID COMMAND>\n";
+    return;
+  }
+  std::string rest;
+  std::getline(in, rest);
+  if (!std::all_of(rest.begin(), rest.end(), isSpaceChar))
   {
     out << "<INVALID COMMAND>\n";
     return;
