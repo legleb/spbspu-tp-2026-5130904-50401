@@ -41,13 +41,6 @@ std::istream & sedov::operator>>(std::istream & in, command &)
   commands["COUNT"] = count;
   commands["RECTS"] = rects;
   commands["SAME"] = same;
-  commands["ECHO"] = echo;
-  commands["INFRAME"] = inframe;
-  commands["INTERSECTIONS"] = intersections;
-  commands["MAXSEQ"] = maxseq;
-  commands["PERMS"] = perms;
-  commands["RMECHO"] = rmecho;
-  commands["LESSAREA"] = lessarea;
 
   auto it = commands.find(name);
   if (it != commands.end())

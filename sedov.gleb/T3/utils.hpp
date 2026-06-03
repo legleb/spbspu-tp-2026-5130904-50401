@@ -56,13 +56,15 @@ namespace sedov
   bool verticesLess(const Polygon & lhs, const Polygon & rhs);
 
   bool operator==(const Point & a, const Point & b);
-  bool operator==(const Polygon & a, const Polygon & b);
   bool pointXLess(const Point & a, const Point & b);
   bool pointYLess(const Point & a, const Point & b);
 
   Point getMinPoint(const Polygon & p);
   Point shiftPoint(const Point & pt, const Point & min);
   Polygon shiftPolygon(const Polygon & p, const Point & min);
+
+  Polygon rotatePolygon(const Polygon & p, size_t shift);
+  bool equalPolygons(const Polygon & a, const Polygon & b);
   bool isSamePlacement(const Polygon & candidate, const Polygon & reference);
 
   bool isRect(const Polygon & candidate);

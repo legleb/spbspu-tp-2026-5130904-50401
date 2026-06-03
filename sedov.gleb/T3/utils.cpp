@@ -1,5 +1,7 @@
 #include "utils.hpp"
 #include <cmath>
+#include <cctype>
+#include <limits>
 
 sedov::GuardIO::GuardIO(std::basic_ios< char > & s):
   s_(s),
@@ -82,15 +84,6 @@ bool sedov::operator==(const Point & a, const Point & b)
   return a.x == b.x && a.y == b.y;
 }
 
-bool sedov::operator==(const Polygon & a, const Polygon & b)
-{
-  if (a.points.size() != b.points.size())
-  {
-    return false;
-  }
-  return std::is_permutation(a.points.begin(), a.points.end(), b.points.begin());
-}
-
 bool sedov::pointXLess(const Point & a, const Point & b)
 {
   return a.x < b.x;
@@ -122,17 +115,47 @@ sedov::Polygon sedov::shiftPolygon(const Polygon & p, const Point & min)
   return result;
 }
 
+sedov::Polygon sedov::rotatePolygon(const Polygon & p, size_t shift)
+{
+  Polygon result;
+  result.points.resize(p.points.size());
+  std::rotate_copy(p.points.begin(), p.points.begin() + shift, p.points.end(), result.points.begin());
+  return result;
+}
+
+bool sedov::equalPolygons(const Polygon & a, const Polygon & b)
+{
+  if (a.points.size() != b.points.size())
+  {
+    return false;
+  }
+  return std::equal(a.points.begin(), a.points.end(), b.points.begin());
+}
+
 bool sedov::isSamePlacement(const Polygon & candidate, const Polygon & reference)
 {
   if (candidate.points.size() != reference.points.size())
   {
     return false;
   }
+  if (candidate.points.empty())
+  {
+    return true;
+  }
+  size_t n = candidate.points.size();
   Point minC = getMinPoint(candidate);
   Point minR = getMinPoint(reference);
   Polygon shiftedC = shiftPolygon(candidate, minC);
   Polygon shiftedR = shiftPolygon(reference, minR);
-  return shiftedC == shiftedR;
+  std::vector< size_t > shifts(n);
+  std::iota(shifts.begin(), shifts.end(), 0);
+  std::vector< Polygon > rotated;
+  rotated.reserve(n);
+  std::transform(shifts.begin(), shifts.end(), std::back_inserter(rotated),
+    std::bind(rotatePolygon, std::cref(shiftedR), std::placeholders::_1));
+  auto pred = std::bind(equalPolygons, std::cref(shiftedC), std::placeholders::_1);
+  auto it = std::find_if(rotated.begin(), rotated.end(), pred);
+  return it != rotated.end();
 }
 
 bool sedov::isRect(const Polygon & p)
@@ -221,6 +244,16 @@ std::istream & sedov::operator>>(std::istream & in, Polygon & p)
   {
     in.setstate(std::ios_base::failbit);
     return in;
+  }
+  char next;
+  if (in >> next)
+  {
+    in.unget();
+    if (!std::isspace(static_cast< unsigned char >(next)))
+    {
+      in.setstate(std::ios_base::failbit);
+      return in;
+    }
   }
   p = std::move(poly);
   return in;
