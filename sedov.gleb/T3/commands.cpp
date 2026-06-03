@@ -7,11 +7,9 @@
 void sedov::same(std::istream & in, std::ostream & out, std::vector< Polygon > & poly)
 {
   Polygon ref;
-  std::streampos pos = in.tellg();
   if (!(in >> ref))
   {
     in.clear();
-    in.seekg(pos);
     in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
     out << "<INVALID COMMAND>\n";
     return;
@@ -154,14 +152,28 @@ void sedov::min(std::istream & in, std::ostream & out, std::vector< Polygon > & 
   }
 }
 
-void sedov::echo(std::istream & in, std::ostream & out, std::vector< Polygon > &)
+void sedov::lessarea(std::istream & in, std::ostream & out, std::vector< Polygon > & poly)
 {
   Polygon ref;
-  std::streampos pos = in.tellg();
   if (!(in >> ref))
   {
     in.clear();
-    in.seekg(pos);
+    in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
+    out << "<INVALID COMMAND>\n";
+    return;
+  }
+  double refArea = getArea(ref);
+  auto pred = std::bind(std::less< double >(), std::bind(getArea, std::placeholders::_1), refArea);
+  size_t result = std::count_if(poly.begin(), poly.end(), pred);
+  out << result << '\n';
+}
+
+void sedov::echo(std::istream & in, std::ostream & out, std::vector< Polygon > &)
+{
+  Polygon ref;
+  if (!(in >> ref))
+  {
+    in.clear();
     in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
     out << "<INVALID COMMAND>\n";
     return;
@@ -172,11 +184,9 @@ void sedov::echo(std::istream & in, std::ostream & out, std::vector< Polygon > &
 void sedov::inframe(std::istream & in, std::ostream & out, std::vector< Polygon > &)
 {
   Polygon ref;
-  std::streampos pos = in.tellg();
   if (!(in >> ref))
   {
     in.clear();
-    in.seekg(pos);
     in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
     out << "<INVALID COMMAND>\n";
     return;
@@ -187,11 +197,9 @@ void sedov::inframe(std::istream & in, std::ostream & out, std::vector< Polygon 
 void sedov::intersections(std::istream & in, std::ostream & out, std::vector< Polygon > &)
 {
   Polygon ref;
-  std::streampos pos = in.tellg();
   if (!(in >> ref))
   {
     in.clear();
-    in.seekg(pos);
     in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
     out << "<INVALID COMMAND>\n";
     return;
@@ -202,11 +210,9 @@ void sedov::intersections(std::istream & in, std::ostream & out, std::vector< Po
 void sedov::maxseq(std::istream & in, std::ostream & out, std::vector< Polygon > &)
 {
   Polygon ref;
-  std::streampos pos = in.tellg();
   if (!(in >> ref))
   {
     in.clear();
-    in.seekg(pos);
     in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
     out << "<INVALID COMMAND>\n";
     return;
@@ -217,11 +223,9 @@ void sedov::maxseq(std::istream & in, std::ostream & out, std::vector< Polygon >
 void sedov::perms(std::istream & in, std::ostream & out, std::vector< Polygon > & poly)
 {
   Polygon ref;
-  std::streampos pos = in.tellg();
   if (!(in >> ref))
   {
     in.clear();
-    in.seekg(pos);
     in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
     out << "<INVALID COMMAND>\n";
     return;
@@ -234,32 +238,12 @@ void sedov::perms(std::istream & in, std::ostream & out, std::vector< Polygon > 
 void sedov::rmecho(std::istream & in, std::ostream & out, std::vector< Polygon > &)
 {
   Polygon ref;
-  std::streampos pos = in.tellg();
   if (!(in >> ref))
   {
     in.clear();
-    in.seekg(pos);
     in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
     out << "<INVALID COMMAND>\n";
     return;
   }
   out << "<NOT IMPLEMENTED>\n";
-}
-
-void sedov::lessarea(std::istream & in, std::ostream & out, std::vector< Polygon > & poly)
-{
-  Polygon ref;
-  std::streampos pos = in.tellg();
-  if (!(in >> ref))
-  {
-    in.clear();
-    in.seekg(pos);
-    in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
-    out << "<INVALID COMMAND>\n";
-    return;
-  }
-  double refArea = getArea(ref);
-  auto pred = std::bind(std::less< double >(), std::bind(getArea, std::placeholders::_1), refArea);
-  size_t result = std::count_if(poly.begin(), poly.end(), pred);
-  out << result << '\n';
 }
