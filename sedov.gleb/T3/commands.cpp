@@ -2,6 +2,7 @@
 #include <string>
 #include <stdexcept>
 #include <iomanip>
+#include <limits>
 
 void sedov::same(std::istream & in, std::ostream & out, std::vector< Polygon > & poly)
 {
