@@ -17,14 +17,10 @@ namespace sedov
     int x, y;
   };
 
-  bool operator==(const Point & a, const Point & b);
-
   struct Polygon
   {
     std::vector< Point > points;
   };
-
-  bool operator==(const Polygon & a, const Polygon & b);
 
   struct DelimeterIO
   {
@@ -48,7 +44,6 @@ namespace sedov
     char fill_;
   };
 
-  std::vector< size_t > makeIndexSequence(size_t n);
   Triangle makeTriangle(const std::vector< Point > & pts, size_t i);
   double triangleArea(Triangle tr);
   double getArea(const Polygon & poly);
@@ -60,17 +55,11 @@ namespace sedov
   bool areaLess(const Polygon & lhs, const Polygon & rhs);
   bool verticesLess(const Polygon & lhs, const Polygon & rhs);
 
-  bool pointXLess(const Point & a, const Point & b);
-  bool pointYLess(const Point & a, const Point & b);
-
-  Point getMinPoint(const Polygon & p);
-  Point shiftPoint(const Point & pt, const Point & min);
-  Polygon shiftPolygon(const Polygon & p, const Point & min);
-  Polygon rotatePolygon(const Polygon & p, size_t shift);
-  bool equalPolygons(const Polygon & a, const Polygon & b);
-  bool isSamePlacement(const Polygon & candidate, const Polygon & reference);
+  bool operator==(const Point & a, const Point & b);
 
   bool isRect(const Polygon & candidate);
+
+  bool isSame(const Polygon & p1, const Polygon & p2);
 
   void readPointsRecursive(std::istream & is, std::vector< Point > & points, size_t remaining);
 

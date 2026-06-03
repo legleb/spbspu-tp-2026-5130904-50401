@@ -4,21 +4,24 @@
 
 void sedov::readData(std::istream & in, std::vector< Polygon > & allPolygons)
 {
-  while (!in.eof())
+  if (in.eof())
   {
-    Polygon p;
-    if (in >> p)
-    {
-      allPolygons.push_back(p);
-    }
-    else
-    {
-      if (in.eof()) break;
-      in.clear();
-      in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
-    }
+    return;
+  }
+  Polygon p;
+  if (in >> p)
+  {
+    allPolygons.push_back(p);
+    readData(in, allPolygons);
+    return;
+  }
+  if (in.eof())
+  {
+    return;
   }
   in.clear();
+  in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
+  readData(in, allPolygons);
 }
 
 std::vector< sedov::Polygon > * sedov::command::allPolygons = nullptr;
@@ -40,24 +43,11 @@ std::istream & sedov::operator>>(std::istream & in, command &)
   commands["RECTS"] = rects;
   commands["SAME"] = same;
 
-  auto it = commands.find(name);
-  if (it != commands.end())
+  try
   {
-    try
-    {
-      it->second(in, std::cout, *command::allPolygons);
-    }
-    catch (...)
-    {
-      std::cout << "<INVALID COMMAND>\n";
-      if (in.fail())
-      {
-        in.clear();
-        in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
-      }
-    }
+    commands.at(name)(in, std::cout, *command::allPolygons);
   }
-  else
+  catch (...)
   {
     std::cout << "<INVALID COMMAND>\n";
     in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
