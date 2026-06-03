@@ -33,6 +33,7 @@ std::istream & sedov::operator>>(std::istream & in, command &)
   {
     return in;
   }
+
   static std::map< std::string, void (*)(std::istream &, std::ostream &, std::vector< Polygon > &) > commands;
   commands["AREA"] = area;
   commands["MAX"] = max;
@@ -40,18 +41,35 @@ std::istream & sedov::operator>>(std::istream & in, command &)
   commands["COUNT"] = count;
   commands["RECTS"] = rects;
   commands["SAME"] = same;
-  try
+  commands["ECHO"] = echo;
+  commands["INFRAME"] = inframe;
+  commands["INTERSECTIONS"] = intersections;
+  commands["MAXSEQ"] = maxseq;
+  commands["PERMS"] = perms;
+  commands["RMECHO"] = rmecho;
+  commands["LESSAREA"] = lessarea;
+
+  auto it = commands.find(name);
+  if (it != commands.end())
   {
-    commands.at(name)(in, std::cout, *command::allPolygons);
+    try
+    {
+      it->second(in, std::cout, *command::allPolygons);
+    }
+    catch (...)
+    {
+      std::cout << "<INVALID COMMAND>\n";
+      if (in.fail())
+      {
+        in.clear();
+        in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
+      }
+    }
   }
-  catch (...)
+  else
   {
     std::cout << "<INVALID COMMAND>\n";
-    if (in.fail())
-    {
-      in.clear();
-      in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
-    }
+    in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
   }
   return in;
 }
