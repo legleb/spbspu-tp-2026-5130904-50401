@@ -39,11 +39,6 @@ namespace
     return !s.empty() && std::all_of(s.begin(), s.end(), isDigitChar);
   }
 
-  bool areaLess(const sedov::Polygon & a, const sedov::Polygon & b)
-  {
-    return sedov::areaLess(a, b);
-  }
-
   bool vertexLess(const sedov::Polygon & a, const sedov::Polygon & b)
   {
     return sedov::verticesLess(a, b);
