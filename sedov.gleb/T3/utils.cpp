@@ -106,9 +106,8 @@ namespace
     return sedov::Point{p.x - origin.x, p.y - origin.y};
   }
 
-  bool checkShift(const std::vector< sedov::Point > & n1,
-                  const std::vector< sedov::Point > & n2,
-                  size_t shift, size_t n)
+  bool checkShift(const std::vector< sedov::Point > & n1, const std::vector< sedov::Point > & n2, size_t shift,
+    size_t n)
   {
     std::vector< sedov::Point > rotated(n);
     std::rotate_copy(n2.begin(), n2.begin() + shift, n2.end(), rotated.begin());

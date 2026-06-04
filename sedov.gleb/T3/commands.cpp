@@ -180,7 +180,8 @@ void sedov::count(std::istream & in, std::ostream & out, std::vector< Polygon > 
     {
       throw std::invalid_argument("invalid");
     }
-    out << std::count_if(polygons.begin(), polygons.end(), std::bind(hasVertexCount, std::placeholders::_1, n)) << "\n";
+    out << std::count_if(polygons.begin(), polygons.end(),
+      std::bind(hasVertexCount, std::placeholders::_1, n)) << "\n";
   }
   else
   {
